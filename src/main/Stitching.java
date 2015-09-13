@@ -21,6 +21,8 @@ public class Stitching {
 	RGB[][] final_arr;
 	String filename;
 	
+	int dim = 32;
+	
 	HashMap<Integer, Integer> tbl = new HashMap<Integer, Integer>();
 	
 	public void init(){
@@ -30,26 +32,14 @@ public class Stitching {
 	
 	
 	public void load_images(){
-		for(int i = 0; i < 103; i++){
-			if(i < 10){
-				filename = "/res/5um-40x-3-2000" + i + ".png"; 
-			}
-			else if(i < 100){
-				filename = "/res/5um-40x-3-200" + i + ".png"; 
-			}
-			else{
-				filename = "/res/5um-40x-3-20" + i + ".png"; 
-			}
+		for(int i = 0; i < 103; i+=3){
+			if(i < 10) filename = "/res/5um-40x-3-2000" + i + ".png"; 
+			else if(i < 100) filename = "/res/5um-40x-3-200" + i + ".png"; 
+			else filename = "/res/5um-40x-3-20" + i + ".png"; 
 			
 			actual_loading_code();
 		}
 	}
-	
-	
-	
-	
-	
-	
 	
 	
 	private void actual_loading_code(){
@@ -69,6 +59,11 @@ public class Stitching {
 			final_img = new BufferedImage(x_length, y_length, BufferedImage.TYPE_INT_RGB);
 			
 			final_arr = new RGB[x_length][y_length];
+			for(int y = 0; y < y_length; y++){
+				for(int x = 0; x < x_length; x++){
+					final_arr[x][y] = new RGB(0,0,0);
+				}
+			}
 		}
 	
 		
@@ -77,10 +72,8 @@ public class Stitching {
 		int y_pos = 0;
 		int num = 0;
 		
-		
 		for(int y = 0; y < y_length; y++){
 			for(int x = 0; x < x_length; x++){
-				
 				Color c = new Color(img.getRGB(x, y));
 				RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
 				//if(( color.luminance() > 130)){
@@ -99,7 +92,18 @@ public class Stitching {
 		y_pos = y_pos/num;
 		
 		System.out.println("X Coordinate: " + x_pos + " Y Coordinate: " + y_pos);
-		final_arr[x_pos][y_pos] = new RGB(125,125,125);
+
+		for(int y = y_pos - (dim/2); y < y_pos + (dim/2); y++){
+			for(int x = x_pos - (dim/2); x < x_pos + (dim/2); x++){
+				Color c = new Color(img.getRGB(x, y));
+				RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
+				
+				if(color.compare(final_arr[x][y])){
+					final_arr[x][y] = color;
+				
+				}
+			}
+		}
 		
 	}
 	
@@ -111,10 +115,7 @@ public class Stitching {
 					int col = (pixel.red << 16 ) | (pixel.green << 8)| pixel.blue;
 					final_img.setRGB(x, y, col);
 				}
-				else{
-					final_img.setRGB(x,y, 0);
-				}
-
+				else final_img.setRGB(x,y, 0);
 			}
 		}
 		File f = new File("output.png");
