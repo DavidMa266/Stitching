@@ -26,8 +26,8 @@ public class Stitching {
 	RGB[][] final_arr;
 	String filename;
 	
-	public final int dim = 32;
-	public final double magnification = 1.5;
+	public final int dim = 50;
+	public final double magnification = 1.8;
 	
 	HashMap<Integer, Integer> tbl = new HashMap<Integer, Integer>();
 	
@@ -36,15 +36,31 @@ public class Stitching {
 		set_image();
 	}
 	
+	public void load_sample(String filename){
+		final URL resource = getClass().getResource(filename);
+		BufferedImage i = null;
+		try {
+		    i = ImageIO.read(resource);
+		} catch (IOException e) {
+			System.out.println("Invalid file name");
+		}
+		
+		
+		Color c = new Color(i.getRGB(0, 0));
+		RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
+		System.out.println(color.luminance());
+	}	
+	
+	
+	
+	
 	
 	public void load_images(){
 		
 		Tuple<Integer, Integer> prev_coordinates = new Tuple<Integer, Integer>(0,0);
 		
-		for(int i = 0; i < 103; i++){
-			if(i < 10) filename = "/res/UC-3-1000" + i + ".png"; 
-			else if(i < 100) filename = "/res/UC-3-100" + i + ".png"; 
-			else filename = "/res/UC-3-10" + i + ".png"; 
+		for(int i = 1; i < 183; i+=2){
+			 filename = "/res/UC-3-10" + i + ".png"; 
 			
 			prev_coordinates = actual_loading_code(prev_coordinates);
 		}
@@ -97,7 +113,7 @@ public class Stitching {
 				
 				//We only take values that are above a certain luminance value. This signifies that this is part of the thing we want. 
 				//Alternatively, we could just make it above a certain average. This will have to be discussed.
-				if( color.luminance() > 150){
+				if( color.luminance() < 90){
 					num++;
 					x_pos+=x;
 					y_pos+=y;

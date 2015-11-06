@@ -8,5 +8,7 @@ public class Tester {
 		
 		Stitching s = new Stitching();
 		s.init();
+		
+		//s.load_sample("/Untitled.png");
 	}
 }
