@@ -5,10 +5,8 @@ import java.util.Arrays;
 public class Tester {
 
 	public static void main(String[] args){
-		
-		Stitching s = new Stitching();
-		s.init();
-		
+		Sobel s = new Sobel();
+		s.test("/res/UC-3-101.png");
 		//s.load_sample("/Untitled.png");
 	}
 }

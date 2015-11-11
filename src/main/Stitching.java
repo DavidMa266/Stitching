@@ -9,6 +9,20 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
+/****
+ * 
+ * 
+ * 
+ * 
+ * IGNORE. THIS HAS BEEN SCRAPPED
+ * 
+ * 
+ * 
+ * 
+ * 
+ * @author David
+ *
+ */
 public class Stitching {
 
 
@@ -26,7 +40,7 @@ public class Stitching {
 	RGB[][] final_arr;
 	String filename;
 	
-	public final int dim = 50;
+	public final int dim = 40;
 	public final double magnification = 1.8;
 	
 	HashMap<Integer, Integer> tbl = new HashMap<Integer, Integer>();
@@ -59,7 +73,7 @@ public class Stitching {
 		
 		Tuple<Integer, Integer> prev_coordinates = new Tuple<Integer, Integer>(0,0);
 		
-		for(int i = 1; i < 183; i+=2){
+		for(int i = 1; i < 183; i++){
 			 filename = "/res/UC-3-10" + i + ".png"; 
 			
 			prev_coordinates = actual_loading_code(prev_coordinates);
@@ -94,7 +108,7 @@ public class Stitching {
 			final_arr = new RGB[result_x_length][result_y_length];
 			for(int y = 0; y < result_y_length; y++){
 				for(int x = 0; x < result_x_length; x++)
-					final_arr[x][y] = new RGB(0,0,0);
+					final_arr[x][y] = new RGB(255,255,255);
 			}
 		}
 		//Identify the center.
@@ -113,7 +127,7 @@ public class Stitching {
 				
 				//We only take values that are above a certain luminance value. This signifies that this is part of the thing we want. 
 				//Alternatively, we could just make it above a certain average. This will have to be discussed.
-				if( color.luminance() < 90){
+				if((color.luminance() < 90)){
 					num++;
 					x_pos+=x;
 					y_pos+=y;
@@ -150,14 +164,14 @@ public class Stitching {
 
 		
 		//Now we take everything in a square around this coordinate and copy everything in the square into an array.
-		for(int y = y_pos - (dim/2); y < y_pos + (dim/2); y++){
+		for(int y = y_pos; y < y_pos + (dim/2); y++){
 			for(int x = x_pos - (dim/2); x < x_pos + (dim/2); x++){
 				
 				//This gets the color of each pixel in the square and records it into the array, overriding previous values
 				Color c = new Color(img.getRGB(x, y));
 				RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
 				
-				if(color.compare(final_arr[x + x_shift][y + y_shift])){
+				if(!color.compare(final_arr[x + x_shift][y + y_shift])){
 					final_arr[x+x_shift][y + y_shift] = color;
 				}
 			}
