@@ -14,8 +14,8 @@ public class Sobel {
 
 	
 	//Image map represents the RGB colors of the original image
-	private HashMap<Tuple<Integer, Integer>, RGB> image_map = new HashMap<Tuple<Integer, Integer>, RGB>();
-	private HashMap<Tuple<Integer, Integer>, Double> blur_map = new HashMap<Tuple<Integer, Integer>, Double>();
+	private RGB[][] image_map;
+	private double[][] blur_map;
 	
 	private double stdev = 1.4;
 	private double g_constant = 1/ (2 * Math.PI * stdev * stdev);
@@ -47,7 +47,7 @@ public class Sobel {
 	}
 	
 	/**
-	 * This method applies a gaussian blur to the original image
+	 * This method applies a Gaussian blur to the original image
 	 */
 	private void gaussian_blur(){
 	
@@ -72,7 +72,7 @@ public class Sobel {
 				index = 0;
 				for(int k = i-blur_dim/2; k <= i+blur_dim/2; k++){
 					for(int l = j-blur_dim/2; l <= j+blur_dim/2; l++){
-						target_matrix[index]= image_map.get(new Tuple<Integer, Integer>(k,l)).luminance();
+						target_matrix[index]= image_map[k][l].luminance();
 						index++;
 					}
 				}
@@ -81,13 +81,16 @@ public class Sobel {
 				//Image convolution
 				for(int k = 0; k < blur_dim * blur_dim; k++)
 					res += G_matrix[k] * target_matrix[k];
-				blur_map.put(new Tuple<Integer, Integer>(i,j), res);
+				blur_map[i][j] = res;
 				
 			}
 		}
 	}
 	
 	
+	/**
+	 * Just a simple blur, averages the surrounding pixels evenly
+	 */
 	private void blur(){
 		for(int i = blur_dim/2; i < width-blur_dim/2; i++){
 			for(int j = blur_dim/2; j < height-blur_dim/2; j++){
@@ -95,19 +98,11 @@ public class Sobel {
 				//We construct the target matrix
 				for(int k = i-blur_dim/2; k <= i+blur_dim/2; k++){
 					for(int l = j-blur_dim/2; l <= j+blur_dim/2; l++){
-						sum += image_map.get(new Tuple<Integer, Integer>(k,l)).luminance();
+						sum += image_map[k][l].luminance();
 					}
-					blur_map.put(new Tuple<Integer,Integer>(i,j), sum/(blur_dim * blur_dim));
+					blur_map[i][j] = sum/(blur_dim * blur_dim);
 				}
 			}
-		}
-		for(int i = 0; i < width; i++){
-			blur_map.put(new Tuple<Integer, Integer>(i, 0), blur_map.get(new Tuple<Integer, Integer>(i, 1)));
-			blur_map.put(new Tuple<Integer, Integer>(i, height - blur_dim/2), blur_map.get(new Tuple<Integer, Integer>(i, height - 1 - blur_dim/2)));
-		}
-		for(int i = 0; i < height; i++){
-			blur_map.put(new Tuple<Integer, Integer>(0, i), blur_map.get(new Tuple<Integer, Integer>(1, i)));
-			blur_map.put(new Tuple<Integer, Integer>(width-blur_dim/2, i), blur_map.get(new Tuple<Integer, Integer>(width-blur_dim/2 - 1, i)));
 		}
 	}
 	
@@ -126,7 +121,7 @@ public class Sobel {
 				//We construct the target matrix
 				for(int k = i-sobel_dim/2; k <= i+sobel_dim/2; k++){
 					for(int l = j-sobel_dim/2; l <= j+sobel_dim/2; l++){
-						target_matrix[index] = blur_map.get(new Tuple<Integer, Integer>(k,l));
+						target_matrix[index] = blur_map[k][l];
 						index++;
 					}
 				}
@@ -187,6 +182,8 @@ public class Sobel {
 		if(im != null){
 			width = im.getWidth();
 			height = im.getHeight();
+			image_map = new RGB[width][height];
+			blur_map = new double[width][height];
 			Sx_map = new double[width][height];
 			Sy_map = new double[width][height];
 			S_result = new double[width][height];	
@@ -197,7 +194,7 @@ public class Sobel {
 					Color c = new Color(im.getRGB(i, j));
 					RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
 					
-					image_map.put(new Tuple<Integer, Integer>(i, j), color);
+					image_map[i][j] = color;
 				}
 			}
 		}
