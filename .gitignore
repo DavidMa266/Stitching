@@ -1,6 +1,7 @@
 /bin/*
 *.class
 /src/traversers-approach/imgsrc/*
+/src/traversers-approach/res/*
 *.classpath
 *.project
 *.db
