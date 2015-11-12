@@ -6,26 +6,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
-
 import javax.imageio.ImageIO;
 
 /****
- * 
- * 
- * 
- * 
- * IGNORE. THIS HAS BEEN SCRAPPED
- * 
- * 
- * 
- * 
- * 
  * @author David
  *
  */
 public class Stitching {
-
-
 	BufferedImage img;
 	BufferedImage final_img;
 	
@@ -64,14 +51,10 @@ public class Stitching {
 		RGB color = new RGB(c.getRed(), c.getGreen(), c.getBlue());
 		System.out.println(color.luminance());
 	}	
-	
-	
-	
-	
-	
+		
 	public void load_images(){
 		
-		Tuple<Integer, Integer> prev_coordinates = new Tuple<Integer, Integer>(0,0);
+		Tuple<Integer, Integer> prev_coordinates = new Tuple<Integer, Integer>(0,0);//just used as coordinates
 		
 		for(int i = 1; i < 183; i++){
 			 filename = "/res/UC-3-10" + i + ".png"; 
@@ -178,11 +161,7 @@ public class Stitching {
 		}
 		return new Tuple<Integer, Integer>(x_pos, y_pos);
 	}
-	
-	
-	
-	
-	
+		
 	/**
 	 * This method takes the array we have generated and outputs it into an image we generate
 	 */
