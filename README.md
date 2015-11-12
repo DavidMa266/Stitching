@@ -6,19 +6,19 @@ We are working on creating a program that creates modern art out of images of na
 
 ![Modern Art Piece Exhibit A](https://raw.githubusercontent.com/DavidMa266/Stitching/master/exhibits/Exhibit_A.jpg)
 
-Beautiful.
+*Beautiful.*
 
 **Modern Art Piece Exhibit B**
 
 ![Modern Art Piece Exhibit B](https://raw.githubusercontent.com/DavidMa266/Stitching/master/exhibits/Exhibit_B.jpg)
 
-Trippy.
+*Trippy.*
 
 **Modern Art Piece Exhibit C**
 
 ![Modern Art Piece Exhibit C](https://raw.githubusercontent.com/DavidMa266/Stitching/master/exhibits/Exhibit_C.jpg)
 
-It's so deep I can't even
+*It's so deep I can't even*
 
 ###To Do
 1. Being able to read .avi files
