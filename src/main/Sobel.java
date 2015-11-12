@@ -29,8 +29,6 @@ public class Sobel {
 	//These variables are used for the Sobel edge generator
 	private double[] Sx = new double[]{-1,  0,  1, -2, 0, 2, -1, 0, 1};
 	private double[] Sy = new double[]{-1, -2, -1,  0, 0,  0, 1, 2, 1};
-	private double[][] Sx_map;
-	private double[][] Sy_map;
 	private double[][] S_result;
 	
 	private int width;
@@ -38,12 +36,15 @@ public class Sobel {
 	
 	
 	public void test(String filename){
+		long startTime = System.nanoTime();
 		BufferedImage im = load_image(filename);
 		if(im == null)
 			return;
 		gaussian_blur();
 		sobel();
 		set_image();
+		long endTime = System.nanoTime();
+		System.out.println("Took "+(endTime - startTime) + " ns"); 
 	}
 	
 	/**
@@ -134,8 +135,6 @@ public class Sobel {
 					y_res += Sy[k] * target_matrix[k];
 				}
 
-				Sx_map[i][j] = x_res;
-				Sy_map[i][j] = y_res;
 				double magnitude = magnitude(x_res, y_res);
 				
 				S_result[i][j] = magnitude;
@@ -184,8 +183,6 @@ public class Sobel {
 			height = im.getHeight();
 			image_map = new RGB[width][height];
 			blur_map = new double[width][height];
-			Sx_map = new double[width][height];
-			Sy_map = new double[width][height];
 			S_result = new double[width][height];	
 			
 			//Loading in the initial file

@@ -1,6 +1,5 @@
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
+package traversers;
+
 
 /*The main class, it traverses through the 2D array representation of the image, and then modifies it*/
 
