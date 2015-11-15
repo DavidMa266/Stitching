@@ -26,8 +26,8 @@ public class Sobel {
 	double[] G_matrix;
 	
 	//These variables are used for the Sobel edge generator
-	private double[] Sx = new double[]{1, 2,  1, 0, 0, 0, -1, -2, -1};
-	private double[] Sy = new double[]{1, 0, -1,  2, 0,  -2, 1, 0, -1};
+	private double[] Sx = new double[]{-1, 0,  1, -3, 0, 3, -1, 0, 1};
+	private double[] Sy = new double[]{-1, -3, -1,  0, 0,  0, 1, 3, 1};
 	private int[][] S_result;
 	private boolean[][] S_threshold;
 	private double[][] S_orientation;
@@ -45,7 +45,7 @@ public class Sobel {
 		}
 	}
 	
-	public void test(String filename, int weak, int strong){
+	public void test(String filename, int weak, int strong, String destination){
 		long startTime = System.nanoTime();
 		BufferedImage im = load_image(filename);
 		if(im == null)
@@ -53,13 +53,14 @@ public class Sobel {
 		gaussian_blur();
 		sobel();
 		non_maximum_suppression(weak, strong);
-		set_image();		
+		set_image(destination);		
 		long endTime = System.nanoTime();
 		System.out.println("Took "+(endTime - startTime) + " ns"); 
 	}
 	
 	/**
-	 * This method applies a Gaussian blur to the original image
+	 * This method applies a Gaussian blur to the original image, with variable stdev and dimensions.
+	 * The new 'image' is placed into blur_map
 	 */
 	private void gaussian_blur(){
 
@@ -121,18 +122,19 @@ public class Sobel {
 	
 	/**
 	 * This method applies the convolution of the two matrices to the result from after the blur
+	 * Magnitudes are placed in S_result
+	 * Angles are placed in S_orientation
 	 */
 	private void sobel(){
 		//Constructing the Sobel matrix
-		
-		
+	
 		for(int i = blur_dim/2 + sobel_dim/2; i < width-blur_dim/2-sobel_dim/2; i++){
 			for(int j = blur_dim/2 + sobel_dim/2; j < height-blur_dim/2-sobel_dim/2; j++){
 				int[] target_matrix = new int[sobel_dim * sobel_dim];
 				int index = 0;
 				//We construct the target matrix
-				for(int k = i-sobel_dim/2; k <= i+sobel_dim/2; k++){
-					for(int l = j-sobel_dim/2; l <= j+sobel_dim/2; l++){
+				for(int k = i-1; k <= i+1; k++){
+					for(int l = j-1; l <= j+1; l++){
 						target_matrix[index] = blur_map[k][l];
 						index++;
 					}
@@ -152,43 +154,82 @@ public class Sobel {
 
 				S_result[i][j] = (int) magnitude;
 				//Conversion to degrees
-				S_orientation[i][j] = Math.atan2(y_res, x_res) * 180 / Math.PI;
+				S_orientation[i][j] = Math.atan2(x_res, y_res) * 180 / Math.PI;
 			}
 		}
 	}
 	
-	
+	/**
+	 * Non maximum suppression finds the local maxima and suppresses values that are not local maxima
+	 * When we found the direction with atan2 in sobel(), this found the direction of greatest increase
+	 * We compare the current pixel to the points in along that direction. If this pixel is greater, then
+	 * we can assume it is a local max.
+	 * If it is not, it is not an edge and is suppressed.
+	 * Values are also filtered through a dual threshold as per the Canny Edge Detector
+	 * 
+	 * Resultant values are placed in S_result
+	 * Blur_map is zeroed out
+	 * S_threshold is returned to all false
+	 * @param weak
+	 * 		Weak threshold for the Canny
+	 * @param strong
+	 * 		Strong threshold
+	 */
 	private void non_maximum_suppression(int weak, int strong){
 		for(int i = 1; i < width-1; i++){
 			for(int j = 1; j < height-1; j++){
-				
+				//Zero out blur map for later use in Hough()
 				blur_map[i][j] = 0;
-				int ne = S_result[i-1][j+1];
-				int n = S_result[i][j+1];
-				int nw = S_result[i+1][j+1];
+				int ne = S_result[i+1][j-1];
+				int e = S_result[i+1][j];
+				int se = S_result[i+1][j+1];
+				int s = S_result[i][j+1];
+				int sw = S_result[i-1][j+1];
+				int w = S_result[i-1][j];
+				int nw = S_result[i-1][j-1];
+				int n = S_result[i][j-1];
 				
-				int e = S_result[i-1][j];
 				int c = S_result[i][j];
-				int w = S_result[i+1][j];
 				
-				int se = S_result[i-1][j-1];
-				int s = S_result[i][j-1];
-				int sw = S_result[i+1][j-1];
-				
-				
+				//Getting directions
 				int f_target = 0;
 				int f_next = 0;
 				int b_target = 0;
 				int b_next = 0;
 				double degrees = S_orientation[i][j];
 				
-				int direction = (int) (degrees % 45);
+				int direction = (int) (degrees / 45);
 				switch (direction){
+				case -4:
+					f_target = w;
+					f_next = sw;
+					b_target = e;
+					b_next = ne;
+					break;
+				case -3:
+					f_target = sw;
+					f_next = s;
+					b_target = ne;
+					b_next = n;
+					break;
+				case -2:
+					f_target = s;
+					f_next = se;
+					b_target = n;
+					b_next = nw;
+					break;
+				case -1:
+					f_target = se;
+					f_next = e;
+					b_target = nw;
+					b_next = w;
+					break;				
 				case 0:
 					f_target = e;
 					f_next = ne;
 					b_target = w;
 					b_next = sw;
+					break;
 				case 1:
 					f_target = ne;
 					f_next = n;
@@ -199,73 +240,60 @@ public class Sobel {
 					f_next = nw;
 					b_target = s;
 					b_next = se;
+					break;
 				case 3:
 					f_target = nw;
 					f_next = w;
 					b_target = se;
 					b_next = e;
+					break;
 				case 4:
 					f_target = w;
 					f_next = sw;
 					b_target = e;
 					b_next = ne;
-				case 5:
-					f_target = sw;
-					f_next = s;
-					b_target = ne;
-					b_next = n;
-				case 6:
-					f_target = s;
-					f_next = se;
-					b_target = n;
-					b_next = nw;
-				case 7:
-					f_target = se;
-					f_next = e;
-					b_target = nw;
-					b_next = w;
+					break;
 				}
 				
-				double f_res = f_target;
-				double b_res = b_target;
-				double overflow = degrees %45;
-				if(overflow > 22){
-					f_res = f_next;
-					b_res = b_next;
-				}
+			//	double f_res = f_target;
+			//	double b_res = b_target;
+			//	double overflow = degrees %45;
+			//	if(overflow > 22){
+			//		f_res = f_next;
+			//		b_res = b_next;
+			//	}
 				
+				//Linear interpolation to find a more accurate value
+				double overflow = ((double)(degrees %45))/45;
 				
-			//	double overflow = ((double)(degrees %45))/45;
+				double f_res = f_target * (1-overflow) + f_next * overflow;
+				double b_res = b_target * (1-overflow) + b_next * overflow;
 				
-			//	double f_res = f_target * (1-overflow) + f_next * overflow;
-			//	double b_res = b_target * (1-overflow) + b_next * overflow;
-				
-				//Preserve values that are greater than the gradients
-				if(c > f_res && c > b_res){
-					
-					
-					
-				}
-				else{
+				//Remove values that are less than their directions
+				if(c <= f_res || c <= b_res)
 					S_threshold[i][j] = true;
-				}
-				
+				//This preserves the local maxima
 			}
 		}
+		//We assign true to all values that are not maxima
 		for(int i = 0; i < width; i++){
 			for(int j = 0; j < height; j++){
+				
+				//Eliminate
 				if(S_threshold[i][j]){
 					S_result[i][j] = 0;
 					S_threshold[i][j] = false;
-				}else if(S_result[i][j] > strong){
-					//STRONG edge, 
-					S_threshold[i][j] = true;
-				}//NO edge
-				else if(S_result[i][j] < weak){
-					S_result[i][j] = 0;
 				}
+				//STRONG edge, 
+				else if(S_result[i][j] > strong)
+					S_threshold[i][j] = true;
+				//NO edge. WEAK edges are not changed
+				else if(S_result[i][j] < weak)
+					S_result[i][j] = 0;
 			}
 		}
+		
+		//Another iteration to pick out valid weak edges
 		for(int i = 0; i < width; i++){
 			for(int j = 0; j < height; j++){
 				//WEAK or NONE
@@ -288,12 +316,27 @@ public class Sobel {
 		}
 	}
 	
-	private boolean strong_edge(int i, int j){
-		return S_threshold[i][j-1] ||  S_threshold[i][j+1] ||
-				 S_threshold[i-1][j-1] ||  S_threshold[i-1][j] ||  S_threshold[i-1][j+1] ||
-				 S_threshold[i+1][j-1] ||  S_threshold[i+1][j] ||  S_threshold[i+1][j+1];  
+	/**
+	 * Function when given an x y coordinate sees if any surrounding pixels are 'strong edges'
+	 * @param x
+	 * 		X coordinate
+	 * @param y
+	 * 		Y coordinate
+	 * @return
+	 * 		Boolean if a strong edge has been detected.
+	 */
+	private boolean strong_edge(int x, int y){
+		return S_threshold[x][y-1] ||  S_threshold[x][y+1] ||
+				 S_threshold[x-1][y-1] ||  S_threshold[x-1][y] ||  S_threshold[x-1][y+1] ||
+				 S_threshold[x+1][y-1] ||  S_threshold[x+1][y] ||  S_threshold[x+1][y+1];  
 	}
 	
+	/**
+	 * This method cycles through 1 to @max_radius going through each and every point to produce a frequency map.
+	 * The points with the greatest frequency should be closest to the center.
+	 * @param max_radius
+	 * 		The arbitrarily decided maximum search radius of the circle.
+	 */
 	private void hough(int max_radius){
 		for(int i = 0; i < width; i++){
 			for(int j = 0; j < height; j++){
@@ -307,22 +350,17 @@ public class Sobel {
 							double c_j = Math.sin(angle);
 							S_threshold[i][j] = true;
 						}
-					
 					}
-					
-					
-					
 				}
 			}
 		}
-		
 	}
 	
 	
 	/**
-	 * Sets the image using the results generated from S_result
+	 * Sets the image using the results generated from S_result named @destination
 	 */
-	private void set_image() {
+	private void set_image(String destination) {
 
 		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		for(int x = 0; x < width; x++){
@@ -333,7 +371,7 @@ public class Sobel {
 				img.setRGB(x, y, color);
 			}
 		}
-		File f = new File("output.png");
+		File f = new File(destination);
 		try {
 			ImageIO.write(img, "PNG", f);
 		} catch (IOException e) {
