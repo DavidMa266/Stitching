@@ -102,25 +102,6 @@ public class Sobel {
 	
 	
 	/**
-	 * Just a simple blur, averages the surrounding pixels evenly
-	 */
-	private void blur(){
-		for(int i = blur_dim/2; i < width-blur_dim/2; i++){
-			for(int j = blur_dim/2; j < height-blur_dim/2; j++){
-				double sum = 0;
-				//We construct the target matrix
-				for(int k = i-blur_dim/2; k <= i+blur_dim/2; k++){
-					for(int l = j-blur_dim/2; l <= j+blur_dim/2; l++){
-						sum += image_map[k][l].luminance();
-					}
-					blur_map[i][j] = (int) (sum/(blur_dim * blur_dim));
-				}
-			}
-		}
-	}
-	
-	
-	/**
 	 * This method applies the convolution of the two matrices to the result from after the blur
 	 * Magnitudes are placed in S_result
 	 * Angles are placed in S_orientation
@@ -168,8 +149,7 @@ public class Sobel {
 	 * Values are also filtered through a dual threshold as per the Canny Edge Detector
 	 * 
 	 * Resultant values are placed in S_result
-	 * Blur_map is zeroed out
-	 * S_threshold is returned to all false
+	 * Blur_map is zeroed out for use later in hough()
 	 * @param weak
 	 * 		Weak threshold for the Canny
 	 * @param strong
@@ -297,6 +277,7 @@ public class Sobel {
 		for(int i = 0; i < width; i++){
 			for(int j = 0; j < height; j++){
 				//WEAK or NONE
+				S_result[i][j] = 0;
 				if(!S_threshold[i][j]){
 					//WEAK 
 					if(S_result[i][j] != 0){
@@ -311,9 +292,25 @@ public class Sobel {
 				//STRONG
 				else
 					S_result[i][j] = 255;
-				S_threshold[i][j] = false;
 			}
 		}
+		
+		int x = 0;
+		int y = 0;
+		int num = 0;
+		for(int i = 0; i < width; i++){
+			for(int j = 0; j < height; j++){
+				
+				if(S_result[i][j] > 0){
+					x += i;
+					y += j;
+					num++;
+				}
+			}
+		}
+		x /= num;
+		y /= num;
+		S_result[x][y] = 255;
 	}
 	
 	/**
@@ -330,31 +327,7 @@ public class Sobel {
 				 S_threshold[x-1][y-1] ||  S_threshold[x-1][y] ||  S_threshold[x-1][y+1] ||
 				 S_threshold[x+1][y-1] ||  S_threshold[x+1][y] ||  S_threshold[x+1][y+1];  
 	}
-	
-	/**
-	 * This method cycles through 1 to @max_radius going through each and every point to produce a frequency map.
-	 * The points with the greatest frequency should be closest to the center.
-	 * @param max_radius
-	 * 		The arbitrarily decided maximum search radius of the circle.
-	 */
-	private void hough(int max_radius){
-		for(int i = 0; i < width; i++){
-			for(int j = 0; j < height; j++){
-				if(S_result[i][j] > 0){
-					
-					for(int r = 1; r < max_radius; r++){
-					
-						for(int theta = 0; theta < 360; theta++){
-							double angle = theta / 180 * Math.PI;
-							double c_i = Math.cos(angle);
-							double c_j = Math.sin(angle);
-							S_threshold[i][j] = true;
-						}
-					}
-				}
-			}
-		}
-	}
+		
 	
 	
 	/**
